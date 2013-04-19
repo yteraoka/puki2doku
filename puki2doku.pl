@@ -170,22 +170,20 @@ sub convert_file {
         mkpath($doku_file_dir);
     }
 
-    my $w = new IO::File $doku_file, "w";
-    if (! defined $w) {
-        warn "can't open $doku_file: $!";
-        return;
-    }
-
     my $pre = 0;
     my $prettify = 0;
     my @sp_buf = (); # #contents
+
+    my @doku_lines = ();
 
     while (my $line = <$r>) {
         $line = decode("euc-jp", $line);
         $line =~ s/[\r\n]+$//;
 
+        # local special case
         # ----
         # #contents
+        # ----
         if ($line eq "----" && scalar(@sp_buf) == 0) {
             push @sp_buf, $line;
             next;
@@ -200,7 +198,7 @@ sub convert_file {
         }
         else {
             foreach (@sp_buf) {
-                print $w encode("utf8", $_),"\n";
+                push @doku_lines, $_ . "\n";
             }
             @sp_buf = ();
         }
@@ -214,17 +212,17 @@ sub convert_file {
 
         # prettify etention
         if ($line =~ /^#prettify{{/) {
-            print $w "<code>\n" if (! $pre);
+            push @doku_lines, "<code>\n" if (! $pre);
             $prettify = 1;
             next;
         }
         elsif ($prettify) {
             if ($line =~ /^\}\}/) {
-                print $w "</code>\n";
+                push @doku_lines, "</code>\n";
                 $prettify = 0;
             }
             else {
-                print $w encode("utf8", $line . "\n");
+                push @doku_lines, $line . "\n";
             }
             next;
         }
@@ -232,18 +230,23 @@ sub convert_file {
         next if ($line =~ /^#/ && $ignore_unknown_macro);
 
         if ($line =~ s/^\x20// || $line =~ /^\t/) {
-            print $w "<code>\n" if (! $pre);
-            print $w encode("utf8", $line . "\n");
+            if (! $pre) {
+                if ($doku_lines[-1] =~ /^\s+\-/) {
+                    $doku_lines[-1] =~ s/\n$//;
+                }
+                push @doku_lines, "<code>\n";
+            }
+            push @doku_lines, $line . "\n";
             $pre = 1;
             next;
         }
         elsif ($pre) {
-            print $w "</code>\n";
+            push @doku_lines, "</code>\n";
             $pre = 0;
         }
 
         if ($line =~ /^\-+$/) {
-            print $w encode("utf8", $line),"\n";
+            push @doku_lines, $line . "\n";
             next;
         }
 
@@ -298,8 +301,11 @@ sub convert_file {
         }
 
         # table は直前の行が空行じゃないとダメっぽい
-        if ($line =~ /^[\^\|]/ && $last_line !~ /^[\^\|]/ && $last_line ne "") {
-            print $w "\n";
+        if (scalar(@doku_lines)) {
+            if ($line =~ /^[\^\|]/
+             && $doku_lines[-1] !~ /^[\^\|]/ && $doku_lines[-1] ne "") {
+                push @doku_lines, "\n";
+            }
         }
 
         # link (中に|を含むので table より後に処理)
@@ -311,19 +317,26 @@ sub convert_file {
         $line =~ s/\&nbsp;/\x20/g;
 
         if ($line =~ /\\\\$/) {
-            print $w encode("utf8", $line), " ";
+            push @doku_lines, $line . " ";
         }
         else {
-            print $w encode("utf8", $line), "\n";
+            push @doku_lines, $line . "\n";
         }
-
-        $last_line = $line;
     }
 
-    print $w "</code>\n" if ($pre);
+    push @doku_lines, "</code>\n" if ($pre);
 
-    $w->close;
     $r->close;
+
+    my $w = new IO::File $doku_file, "w";
+    if (! defined $w) {
+        warn "can't open $doku_file: $!";
+        return;
+    }
+    foreach my $line (@doku_lines) {
+        print $w encode("utf8", $line);
+    }
+    $w->close;
 
     # copy last modified
     system("/bin/touch", "-r", $src_file, $doku_file);
