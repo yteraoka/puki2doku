@@ -116,7 +116,7 @@ opendir($d, ".") || die "can't opendir: $src_dir: $!";
 
 if ($attach_file_mode) {
     while (my $file = readdir($d)) {
-        next if (-d $file || $file =~ /\.log$/ || $file eq "index.html");
+        next if (-d $file || $file =~ /\.log$/ || $file eq "index.html" || $file eq ".htaccess");
         print $file,"\n" if ($verbose);
         copy_attach_file($file);
     }
@@ -136,9 +136,22 @@ closedir($d);
 sub copy_attach_file {
     my ($src_file) = @_;
 
-    my $dokuwiki_filename = basename(convert_filename($src_file));
+    my $src_filename = basename($src_file);
 
-    my $dst_file = join("/", $dst_dir, $dokuwiki_filename);
+    # {full_pagename}_{attached_filename} (pagename には / を含む)
+    my ($full_pagename, $attached_filename) = split(/_/, $src_filename, 2);
+
+    my $dokuwiki_subdir = convert_filename($full_pagename);
+    my $dokuwiki_filename = convert_filename($attached_filename);
+
+    my $media_dst_dir = join("/", $dst_dir, $dokuwiki_subdir);
+    if (! -d $media_dst_dir) {
+        mkpath($media_dst_dir) || die "can't mkdir $media_dst_dir: $!";
+    }
+
+    my $dst_file = join("/", $media_dst_dir, $dokuwiki_filename);
+
+    printf "%s => %s\n", encode("utf8", $src_file), encode("utf8", $dst_file) if ($verbose);
 
     copy($src_file, $dst_file);
 }
@@ -156,10 +169,13 @@ sub convert_file {
         $in_subdir = 1;
     }
 
-    my $namespace = decode("euc-jp", pukiwiki_filename_decode($src_file));
-    return if ($namespace =~ /^:/);
-    $namespace =~ s/\.txt//;
-    $namespace =~ s/\//:/g;
+    # 小文字にしたり、記号を変換してないページ名
+    my $pagename = decode("euc-jp", pukiwiki_filename_decode($src_file));
+
+    return if ($pagename =~ /^:/); # 特殊ファイル
+
+    $pagename =~ s/\.txt//;
+    $pagename =~ s/\//:/g; # namespace の区切りは / ではなく :
 
     my $doku_file = sprintf "%s/%s",
                             $dst_dir,
@@ -180,10 +196,8 @@ sub convert_file {
         $line = decode("euc-jp", $line);
         $line =~ s/[\r\n]+$//;
 
-        # local special case
         # ----
         # #contents
-        # ----
         if ($line eq "----" && scalar(@sp_buf) == 0) {
             push @sp_buf, $line;
             next;
@@ -206,8 +220,8 @@ sub convert_file {
 
 
         if ($use_indexmenu_plugin) {
-            $line =~ s/^#ls2?\((.*)\).*$/convert_ls_indexmenu($namespace, $1)/e;
-            $line =~ s/^#ls2?$/convert_ls_indexmenu($namespace)/e;
+            $line =~ s/^#ls2?\((.*)\).*$/convert_ls_indexmenu($pagename, $1)/e;
+            $line =~ s/^#ls2?$/convert_ls_indexmenu($pagename)/e;
         }
 
         # prettify etention
@@ -274,8 +288,8 @@ sub convert_file {
         $line =~ s#(?:^|[^:])(//)#%%$1%%#g;
 
         # ref
-        $line =~ s/\&ref\((.+?)\);/convert_ref($1)/ge;
-        $line =~ s/#ref\((.+?)\)/convert_ref($1)/ge;
+        $line =~ s/\&ref\((.+?)\);/convert_ref($pagename, $1)/ge;
+        $line =~ s/#ref\((.+?)\)/convert_ref($pagename, $1)/ge;
 
         # heading
         $line =~ s/^\*\s*([^\*].*?)\[#.*$/heading(6, $1)/e;
@@ -339,7 +353,7 @@ sub convert_file {
     $w->close;
 
     # copy last modified
-    system("/bin/touch", "-r", $src_file, $doku_file);
+#    system("/bin/touch", "-r", $src_file, $doku_file);
 }
 
 sub heading {
@@ -354,11 +368,11 @@ sub heading {
 }
 
 sub convert_ls_indexmenu {
-    my ($page_namespace, $namespace) = @_;
+    my ($src_pagename, $namespace) = @_;
 
     $namespace = "" if (! $namespace);
     $namespace =~ s/\//:/g;
-    $namespace = $page_namespace if (! $namespace);
+    $namespace = $src_pagename if (! $namespace);
 
     if ($namespace) {
         return "{{indexmenu>" . $namespace . "|js}}"
@@ -513,7 +527,7 @@ sub convert_link {
 }
 
 sub convert_ref {
-    my ($str) = @_;
+    my ($src_pagename, $str) = @_;
 
     my ($link_to, $option) = split(/,/, $str, 2);
 
@@ -521,7 +535,7 @@ sub convert_ref {
         return sprintf "[[%s|{{%s}}]]", $link_to, $link_to;
     }
     else {
-        return sprintf "{{wiki:%s}}", $link_to;
+        return sprintf "{{%s:%s}}", $src_pagename, $link_to;
     }
 }
 

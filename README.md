@@ -7,12 +7,21 @@ PukiWiki => DokuWiki data convertor
 Usage
 -----
 
+Convert wiki page
 ```
 $ puki2doku.pl -s pukiwiki/wiki -d dokuwiki/data/page
               [-S/--font-size]  (fontsize plugin required)
               [-C/--font-color] (color plugin required)
               [-I/--indexmenu]  (indexmenu plugin required)
               [-N/--ignore-unknown-macro]
+              [-v/--verbose]
+```
+--font-size option is not recommended.
+fontsize plugin does not support nested text decoration.
+
+Convert attached files
+```
+$ puki2doku.pl -A [-v] -s pukiwiki/attach -d dokuwiki/data/media
 ```
 
 After data converson. You need rebuild search index using following command.
@@ -33,7 +42,5 @@ DokuWiki Plugin
 
 Note
 ----
-
-Attachment file conversion is not yet supported.
 
 [Blog post](http://blog.1q77.com/2013/04/migrating-from-pukiwiki-to-dokuwiki/)
