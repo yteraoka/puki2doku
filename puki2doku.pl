@@ -353,7 +353,7 @@ sub convert_file {
     $w->close;
 
     # copy last modified
-#    system("/bin/touch", "-r", $src_file, $doku_file);
+    system("/bin/touch", "-r", $src_file, $doku_file);
 }
 
 sub heading {
