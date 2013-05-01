@@ -241,8 +241,6 @@ sub convert_file {
             next;
         }
 
-        next if ($line =~ /^#/ && $ignore_unknown_macro);
-
         if ($line =~ s/^\x20// || $line =~ /^\t/) {
             if (! $pre) {
                 if (scalar(@doku_lines) && $doku_lines[-1] =~ /^\s+\-/) {
@@ -263,6 +261,12 @@ sub convert_file {
             push @doku_lines, $line . "\n";
             next;
         }
+
+        # ref
+        $line =~ s/\&ref\((.+?)\);/convert_ref($pagename, $1)/ge;
+        $line =~ s/#ref\((.+?)\)/convert_ref($pagename, $1)/ge;
+
+        next if ($line =~ /^#/ && $ignore_unknown_macro);
 
         # definitions
         $line =~ s/^:(.*?)\|(.*)$/  = $1 : $2/;
@@ -286,10 +290,6 @@ sub convert_file {
 
         # escape
         $line =~ s#(?:^|[^:])(//)#%%$1%%#g;
-
-        # ref
-        $line =~ s/\&ref\((.+?)\);/convert_ref($pagename, $1)/ge;
-        $line =~ s/#ref\((.+?)\)/convert_ref($pagename, $1)/ge;
 
         # heading
         $line =~ s/^\*\s*([^\*].*?)\[#.*$/heading(6, $1)/e;
