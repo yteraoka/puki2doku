@@ -326,7 +326,7 @@ sub convert_file {
         $line =~ s/\[\[(.+?)\]\]/convert_link($1, $in_subdir)/ge;
 
         # email link (mailto)
-        $line =~ s/(^|[^\[])([a-zA-Z0-9\._\-]+\@[a-zA-Z0-9]+.[a-zA-Z0-9]+)([^\]]|$)/$1\[\[$2\]\]$3/g;
+        $line =~ s/(^|[^\[])([a-zA-Z0-9\._\-]+\@[a-zA-Z0-9\.]+\.[a-zA-Z0-9]+)([^\]]|$)/$1\[\[$2\]\]$3/g;
 
         $line =~ s/\&nbsp;/\x20/g;
 
