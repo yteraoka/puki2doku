@@ -245,7 +245,7 @@ sub convert_file {
 
         if ($line =~ s/^\x20// || $line =~ /^\t/) {
             if (! $pre) {
-                if ($doku_lines[-1] =~ /^\s+\-/) {
+                if (scalar(@doku_lines) && $doku_lines[-1] =~ /^\s+\-/) {
                     $doku_lines[-1] =~ s/\n$//;
                 }
                 push @doku_lines, "<code>\n";
