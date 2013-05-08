@@ -375,10 +375,10 @@ sub convert_ls_indexmenu {
     $namespace = $src_pagename if (! $namespace);
 
     if ($namespace) {
-        return "{{indexmenu>" . $namespace . "|js}}"
+        return "{{indexmenu>" . $namespace . "|tsort}}"
     }
     else {
-        return "{{indexmenu>.|js}}"
+        return "{{indexmenu>.|tsort}}"
     }
 }
 
