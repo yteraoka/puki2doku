@@ -376,6 +376,7 @@ sub convert_ls_indexmenu {
     $namespace = "" if (! $namespace);
     $namespace =~ s/\//:/g;
     $namespace = $src_pagename if (! $namespace);
+    $namespace =~ s/\x20+/_/g;
 
     if ($namespace) {
         return "{{indexmenu>" . $namespace . "|tsort}}"
