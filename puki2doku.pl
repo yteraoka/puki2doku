@@ -574,9 +574,9 @@ sub convert_filename {
     $decoded =~ s/[\x20-\x2c\x3a-\x40\x5b-\x60\x7b-\x7e]+/_/g;
 
     # 末尾の _ は削る
-    $decoded =~ s/_+.txt$/.txt/;
+    $decoded =~ s/[_\.\-]+.txt$/.txt/;
     # ディレクトリの末尾からも削る
-    $decoded =~ s#_+/#/#g;
+    $decoded =~ s#[_\.\-]+/#/#g;
 
     # アルファベットは小文字に置換
     $decoded =~ tr/[A-Z]/[a-z]/;
