@@ -8,6 +8,7 @@
 #                     [-I/--indexmenu]
 #                     [-N/--ignore-unknown-macro]
 #                     [-O/--do-not-overwrite]
+#                     [-P pagename.txt(encode)/--page=pagename.txt(encoded)]
 #
 #*****************************************************************************
 use strict;
@@ -61,6 +62,7 @@ my $attach_file_mode;
 my $src_dir = ".";
 my $ignore_unknown_macro;
 my $dont_overwrite;
+my $specified_page_file;
 
 my %smiles = (
   smile    => ' :-) ',
@@ -80,6 +82,7 @@ GetOptions("verbose|v"     => \$verbose,
            "decode|D"      => \$decode_mode,
            "attach|A"      => \$attach_file_mode,
            "src-dir|s=s"   => \$src_dir,
+           "page|P=s"      => \$specified_page_file,
            "help|h"        => \&usage,
            "ignore-unknown-macro|N" => \$ignore_unknown_macro,
            "do-not-overwrite|O" => \$dont_overwrite,
@@ -94,6 +97,7 @@ sub usage {
     print "       [--do-not-overwrite/-O]\n";
     print "       [--decode/-D]\n";
     print "       [--attach/-A]\n";
+    print "       [--page=pagename.txt/-A pagename.txt]\n";
     exit 1;
 }
 
@@ -131,6 +135,7 @@ if ($attach_file_mode) {
 else {
     while (my $file = readdir($d)) {
         next if (-d $file || $file !~ /\.txt$/);
+        next if ($specified_page_file && $specified_page_file ne $file);
         print $file,"\n" if ($verbose);
         convert_file($file);
     }
