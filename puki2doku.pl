@@ -7,6 +7,7 @@
 #                     [-C/--font-color]
 #                     [-I/--indexmenu]
 #                     [-N/--ignore-unknown-macro]
+#                     [-O/--do-not-overwrite]
 #
 #*****************************************************************************
 use strict;
@@ -59,6 +60,7 @@ my $decode_mode;
 my $attach_file_mode;
 my $src_dir = ".";
 my $ignore_unknown_macro;
+my $dont_overwrite;
 
 my %smiles = (
   smile    => ' :-) ',
@@ -80,6 +82,7 @@ GetOptions("verbose|v"     => \$verbose,
            "src-dir|s=s"   => \$src_dir,
            "help|h"        => \&usage,
            "ignore-unknown-macro|N" => \$ignore_unknown_macro,
+           "do-not-overwrite|O" => \$dont_overwrite,
 ) || usage();
 
 sub usage {
@@ -88,6 +91,7 @@ sub usage {
     print "       [--font-size/-S]\n";
     print "       [--indexmenu/-I]\n";
     print "       [--ignore-unknown-macro/-N]\n";
+    print "       [--do-not-overwrite/-O]\n";
     print "       [--decode/-D]\n";
     print "       [--attach/-A]\n";
     exit 1;
@@ -154,6 +158,12 @@ sub copy_attach_file {
 
     my $dst_file = join("/", $media_dst_dir, $dokuwiki_filename);
 
+    # 既に存在していたら上書きしない
+    if ($dont_overwrite && -f $dst_file) {
+        print "SKIP " . encode("utf8", $dst_file),"\n" if ($verbose);
+        return;
+    }
+
     printf "%s => %s\n", encode("utf8", $src_file), encode("utf8", $dst_file) if ($verbose);
 
     copy($src_file, $dst_file);
@@ -183,6 +193,12 @@ sub convert_file {
     my $doku_file = sprintf "%s/%s",
                             $dst_dir,
                             $dokuwiki_filename;
+
+    # 既に存在していたら上書きしない
+    if ($dont_overwrite && -f $doku_file) {
+        print "SKIP " . encode("utf8", $doku_file),"\n" if ($verbose);
+        return;
+    }
 
     my $doku_file_dir = dirname($doku_file);
     if (! -d $doku_file_dir) {
