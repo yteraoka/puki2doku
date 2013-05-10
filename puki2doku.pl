@@ -585,8 +585,8 @@ sub convert_filename {
     # 先頭からも削る
     $decoded =~ s#/[_\.\-]+#/#g;
 
-    # アルファベットは小文字に置換
-    $decoded =~ tr/[A-Z]/[a-z]/;
+    # アルファベットは小文字に置換(全角も)
+    $decoded =~ tr/[A-ZＡ-Ｚ]/[a-zａ-ｚ]/;
 
     # .-/a-z 以外を url encode
     my $dokuwiki_name = dokuwiki_url_encode($decoded);
