@@ -11,6 +11,7 @@
 #                     [-D/--decode]
 #                     [-A/--attach]
 #                     [-P pagename.txt(encoded)/--page=pagename.txt(encoded)]
+#                     [-E utf8/--encoding=utf8]
 #
 #*****************************************************************************
 use strict;
@@ -65,6 +66,7 @@ my $src_dir = ".";
 my $ignore_unknown_macro;
 my $dont_overwrite;
 my $specified_page_file;
+my $input_encoding = "euc-jp";
 
 my %smiles = (
   smile    => ' :-) ',
@@ -88,6 +90,7 @@ GetOptions("verbose|v"     => \$verbose,
            "help|h"        => \&usage,
            "ignore-unknown-macro|N" => \$ignore_unknown_macro,
            "do-not-overwrite|O" => \$dont_overwrite,
+           "encoding|E=s"  => \$input_encoding,
 ) || usage();
 
 sub usage {
@@ -100,6 +103,7 @@ sub usage {
     print "       [--decode/-D]\n";
     print "       [--attach/-A]\n";
     print "       [--page=pagename.txt/-P pagename.txt]\n";
+    print "       [--encoding=utf8/-E utf8]\n";
     exit 1;
 }
 
@@ -107,7 +111,7 @@ if ($decode_mode) {
     while (<>) {
         print $_;
         s/[\r\n]+$//;
-        print encode("utf8", decode("euc-jp", pukiwiki_filename_decode($_))),"\n";
+        print encode("utf8", decode($input_encoding, pukiwiki_filename_decode($_))),"\n";
     }
     exit;
 }
@@ -190,7 +194,7 @@ sub convert_file {
     }
 
     # 小文字にしたり、記号を変換してないページ名
-    my $pagename = decode("euc-jp", pukiwiki_filename_decode($src_file));
+    my $pagename = decode($input_encoding, pukiwiki_filename_decode($src_file));
 
     return if ($pagename =~ /^:/); # 特殊ファイル
 
@@ -219,7 +223,7 @@ sub convert_file {
     my @doku_lines = ();
 
     while (my $line = <$r>) {
-        $line = decode("euc-jp", $line);
+        $line = decode($input_encoding, $line);
         $line =~ s/[\r\n]+$//;
 
         # ----
@@ -569,7 +573,7 @@ sub convert_ref {
 sub convert_filename {
     my ($filename) = @_;
 
-    my $decoded = decode("euc-jp", pukiwiki_filename_decode($filename));
+    my $decoded = decode($input_encoding, pukiwiki_filename_decode($filename));
 
     print encode("utf8", $decoded),"\n" if ($verbose);
 

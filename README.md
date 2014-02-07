@@ -19,6 +19,7 @@ $ puki2doku.pl -s pukiwiki/wiki -d dokuwiki/data/page
               [-D/--decode]
               [-A/--attach]
               [-P pagename.txt(encoded)/--page=pagename.txt(encoded)]
+              [-E utf8/--encoding=utf8]
 ```
 --font-size option is not recommended.
 fontsize plugin does not support nested text decoration.
