@@ -18,6 +18,7 @@ $ puki2doku.pl -s pukiwiki/wiki -d dokuwiki/data/page
               [-O/--do-not-overwrite]
               [-D/--decode]
               [-A/--attach]
+              [-H/--use-heading]
               [-P pagename.txt(encoded)/--page=pagename.txt(encoded)]
               [-E utf8/--encoding=utf8]
 ```
