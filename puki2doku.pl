@@ -8,7 +8,9 @@
 #                     [-I/--indexmenu]
 #                     [-N/--ignore-unknown-macro]
 #                     [-O/--do-not-overwrite]
-#                     [-P pagename.txt(encode)/--page=pagename.txt(encoded)]
+#                     [-D/--decode]
+#                     [-A/--attach]
+#                     [-P pagename.txt(encoded)/--page=pagename.txt(encoded)]
 #
 #*****************************************************************************
 use strict;
@@ -97,7 +99,7 @@ sub usage {
     print "       [--do-not-overwrite/-O]\n";
     print "       [--decode/-D]\n";
     print "       [--attach/-A]\n";
-    print "       [--page=pagename.txt/-A pagename.txt]\n";
+    print "       [--page=pagename.txt/-P pagename.txt]\n";
     exit 1;
 }
 

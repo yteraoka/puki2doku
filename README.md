@@ -15,6 +15,10 @@ $ puki2doku.pl -s pukiwiki/wiki -d dokuwiki/data/page
               [-I/--indexmenu]  (indexmenu plugin required)
               [-N/--ignore-unknown-macro]
               [-v/--verbose]
+              [-O/--do-not-overwrite]
+              [-D/--decode]
+              [-A/--attach]
+              [-P pagename.txt(encoded)/--page=pagename.txt(encoded)]
 ```
 --font-size option is not recommended.
 fontsize plugin does not support nested text decoration.
