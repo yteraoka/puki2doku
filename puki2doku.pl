@@ -442,15 +442,16 @@ sub convert_table {
 
     foreach my $col (@cols) {
         my $pos = "";
-        if ($span == 0) {
-            $new_line .= ($is_header) ? '^' : '|';
-        }
 
         while ($col =~ s/^(LEFT|CENTER|RIGHT|COLOR\(.*?\)|BGCOLOR\(.*?\)|SIZE\(.*?\))://) {
             if ($1 eq "LEFT" || $1 eq "CENTER" || $1 eq "RIGHT") {
                 $pos = $1;
             }
             $pos = "CENTER" if ($is_header);
+        }
+
+        if ($span == 0) {
+            $new_line .= ($col =~ s/^~(?!\s*$)// || $is_header) ? '^' : '|';
         }
 
         if ($col eq ">") {
