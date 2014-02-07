@@ -620,6 +620,9 @@ sub pukiwiki_filename_decode {
     if ($str eq "FrontPage.txt") {
         $str = "start.txt";
     }
+    elsif ($str eq "MenuBar.txt") {
+        $str = "sidebar.txt";
+    }
 
     return $str;
 }
