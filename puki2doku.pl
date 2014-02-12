@@ -8,7 +8,11 @@
 #                     [-I/--indexmenu]
 #                     [-N/--ignore-unknown-macro]
 #                     [-O/--do-not-overwrite]
-#                     [-P pagename.txt(encode)/--page=pagename.txt(encoded)]
+#                     [-D/--decode]
+#                     [-A/--attach]
+#                     [-H/--use-heading]
+#                     [-P pagename.txt(encoded)/--page=pagename.txt(encoded)]
+#                     [-E utf8/--encoding=utf8]
 #
 #*****************************************************************************
 use strict;
@@ -63,6 +67,8 @@ my $src_dir = ".";
 my $ignore_unknown_macro;
 my $dont_overwrite;
 my $specified_page_file;
+my $input_encoding = "euc-jp";
+my $use_heading;
 
 my %smiles = (
   smile    => ' :-) ',
@@ -86,6 +92,8 @@ GetOptions("verbose|v"     => \$verbose,
            "help|h"        => \&usage,
            "ignore-unknown-macro|N" => \$ignore_unknown_macro,
            "do-not-overwrite|O" => \$dont_overwrite,
+           "encoding|E=s"  => \$input_encoding,
+           "use-heading|H"  => \$use_heading,
 ) || usage();
 
 sub usage {
@@ -97,7 +105,9 @@ sub usage {
     print "       [--do-not-overwrite/-O]\n";
     print "       [--decode/-D]\n";
     print "       [--attach/-A]\n";
-    print "       [--page=pagename.txt/-A pagename.txt]\n";
+    print "       [--use-heading/-H]\n";
+    print "       [--page=pagename.txt/-P pagename.txt]\n";
+    print "       [--encoding=utf8/-E utf8]\n";
     exit 1;
 }
 
@@ -105,7 +115,7 @@ if ($decode_mode) {
     while (<>) {
         print $_;
         s/[\r\n]+$//;
-        print encode("utf8", decode("euc-jp", pukiwiki_filename_decode($_))),"\n";
+        print encode("utf8", decode($input_encoding, pukiwiki_filename_decode($_))),"\n";
     }
     exit;
 }
@@ -188,7 +198,7 @@ sub convert_file {
     }
 
     # 小文字にしたり、記号を変換してないページ名
-    my $pagename = decode("euc-jp", pukiwiki_filename_decode($src_file));
+    my $pagename = decode($input_encoding, pukiwiki_filename_decode($src_file));
 
     return if ($pagename =~ /^:/); # 特殊ファイル
 
@@ -216,8 +226,15 @@ sub convert_file {
 
     my @doku_lines = ();
 
+    # 見出しを追加。これはDokuWikiでuseheadingオプションを使う場合に有効
+    if ($use_heading) {
+        my $pageid = $pagename;
+        $pageid =~ tr/[A-ZＡ-Ｚ]/[a-zａ-ｚ]/; # pageidは小文字
+        push @doku_lines, "====== " . $pageid . " ======\n\n";
+    }
+
     while (my $line = <$r>) {
-        $line = decode("euc-jp", $line);
+        $line = decode($input_encoding, $line);
         $line =~ s/[\r\n]+$//;
 
         # ----
@@ -436,15 +453,16 @@ sub convert_table {
 
     foreach my $col (@cols) {
         my $pos = "";
-        if ($span == 0) {
-            $new_line .= ($is_header) ? '^' : '|';
-        }
 
         while ($col =~ s/^(LEFT|CENTER|RIGHT|COLOR\(.*?\)|BGCOLOR\(.*?\)|SIZE\(.*?\))://) {
             if ($1 eq "LEFT" || $1 eq "CENTER" || $1 eq "RIGHT") {
                 $pos = $1;
             }
             $pos = "CENTER" if ($is_header);
+        }
+
+        if ($span == 0) {
+            $new_line .= ($col =~ s/^~(?!\s*$)// || $is_header) ? '^' : '|';
         }
 
         if ($col eq ">") {
@@ -567,7 +585,7 @@ sub convert_ref {
 sub convert_filename {
     my ($filename) = @_;
 
-    my $decoded = decode("euc-jp", pukiwiki_filename_decode($filename));
+    my $decoded = decode($input_encoding, pukiwiki_filename_decode($filename));
 
     print encode("utf8", $decoded),"\n" if ($verbose);
 
@@ -601,6 +619,9 @@ sub pukiwiki_filename_decode {
 
     if ($str eq "FrontPage.txt") {
         $str = "start.txt";
+    }
+    elsif ($str eq "MenuBar.txt") {
+        $str = "sidebar.txt";
     }
 
     return $str;
