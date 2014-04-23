@@ -64,7 +64,7 @@ my $verbose;
 my $use_font_color_plugin;
 my $use_font_size_plugin;
 my $use_indexmenu_plugin;
-my $dst_dir = "./page"; # "-s"オプションが省略された場合に備えて
+my $dst_dir = "./pages"; # "-s"オプションが省略された場合に備えて
 my $decode_mode;
 my $attach_file_mode;
 my $src_dir = ".";
