@@ -24,6 +24,10 @@ use File::Copy;
 use File::Path;
 use IO::File;
 use Getopt::Long qw(:config no_ignore_case bundling);
+use Cwd;
+
+# If you need.
+# binmode STDOUT, ":utf8";
 
 # ＿・ と全角数字は記号扱いじゃない
 my @KIGO_ARRAY = (
@@ -60,7 +64,7 @@ my $verbose;
 my $use_font_color_plugin;
 my $use_font_size_plugin;
 my $use_indexmenu_plugin;
-my $dst_dir = ".";
+my $dst_dir = "./page"; # "-s"オプションが省略された場合に備えて
 my $decode_mode;
 my $attach_file_mode;
 my $src_dir = ".";
@@ -128,6 +132,9 @@ elsif (! -w $dst_dir) {
     warn "$dst_dir is not writable\n";
     exit 3;
 }
+
+# $src_dirにchdirするので，絶対パスが必要．
+$dst_dir=Cwd::abs_path($dst_dir);
 
 #-----------------------------------------------------------------------------
 
